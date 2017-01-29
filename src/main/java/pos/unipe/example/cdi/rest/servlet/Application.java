@@ -49,6 +49,8 @@ import org.apache.camel.Header;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.cdi.ContextName;
 
+import com.google.gson.Gson;
+
 public class Application {
 
     @ContextName("posunipe")
@@ -84,9 +86,9 @@ public class Application {
         CamelContext context;
         
         public String cadastro(@Header("nome") String nome, @Header("cpf") String cpf) {
+        	Gson gson = new Gson();
         	if(isCPF(cpf)){
-        		cadastrarUsuario(nome, cpf);
-        		return "Usuario " + nome + " cadastrado!";
+        		return gson.toJson(cadastrarUsuario(nome, cpf));        		
         	} else {
         		return "CPF inválido!";
         	}               
@@ -100,8 +102,8 @@ public class Application {
         CamelContext context;
         
         public String reserva(@Header("cpf") String cpf) {
-        	reservar(cpf);
-            return "Reserva efetuada com sucesso para o usuário com cpf: " + cpf;
+        	Gson gson = new Gson();
+        	return gson.toJson(reservar(cpf));            
         }
     }
     
@@ -112,7 +114,8 @@ public class Application {
         CamelContext context;
         
         public String confirma() {        	
-            return "Confirmada reserva: " + confirmarReserva();
+        	Gson gson = new Gson();
+            return gson.toJson(confirmarReserva());
         }
     }
     
@@ -172,7 +175,7 @@ public class Application {
     	  }
     
     
-	public static void cadastrarUsuario(String name, String cpf) {
+	public static Usuario cadastrarUsuario(String name, String cpf) {
 
 		Usuario usuario = new Usuario();
 		usuario.setId(1);
@@ -194,13 +197,17 @@ public class Application {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
+		return usuario;
 	}
 
-	public static void reservar(String cpf) {
+	public static Reserva reservar(String cpf) {
+		
+		Reserva reserva = new Reserva();
+		
 		try { // Create a connection factory.
 			ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory("tcp://localhost:61616");
-			
-			Reserva reserva = new Reserva();
+						
 			reserva.setId(1);
 			
 			Usuario usuario = new Usuario();
@@ -269,6 +276,8 @@ public class Application {
          catch (Exception ex) {
              System.out.println("Exception Occured");
          }
+		
+		return reserva;
     }
 	
 	public static Properties getProp() throws IOException {
